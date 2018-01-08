@@ -7,18 +7,24 @@ class canvas(object):
         self.__dot = "+"
         self.__title = "Untitled"
         self.__author = "Unkown"
-        self.__space = " "
-        self.__canvas = [[" " for j in range(0,width,1)] for i in range(0, height, 1)]
+        self.__space = ""
+        self.initcanvas(" ")
         return
 
     def __str__(self):
-        return "A Canvas Object-name:%s\nwidth:%s height:%s" % (self.__name,self.__width,self.__height)
+        return "A Canvas Object-name:%s" % (self.__title)
 
     __repr__ = __str__
 
     def initcanvas(self,initstr):
-        initstr = str(initstr)
-        self.__canvas = [[initstr for j in range(0,self.__width,1)] for i in range(0,self.__height, 1)]
+        if initstr != None:
+            initstr = str(initstr)
+            if len(initstr) > 0 :
+                self.__canvas = [[initstr for j in range(0, self.__width, 1)] for i in range(0, self.__height, 1)]
+            else:
+                print("Can't Be A Blank String!")
+        else:
+            print("Can't Be None")
         return
 
     def output(self):
@@ -39,6 +45,14 @@ class canvas(object):
             self.__canvas[x - 1][y - 1] = self.__dot
         except :
             print("Error")
+        return
+
+    def cleardot(self,x,y):
+        try:
+            self.__canvas[x-1][y-1] = " "
+        except:
+            print("Error")
+        return
 
     @property
     def space(self):
@@ -47,6 +61,15 @@ class canvas(object):
     @space.setter
     def space(self, space):
         self.__space = str(space)
+        return
+
+    @property
+    def dot(self):
+        return self.__dot
+
+    @dot.setter
+    def dot(self, dot):
+        self.__dot = str(dot)
         return
 
     @property
@@ -59,19 +82,10 @@ class canvas(object):
         return
 
     @property
-    def dot(self):
-        return self.__dot
-
-    @dot.setter
-    def dot(self,dot):
-        self.__dot = str(dot)
-        return
-
-    @property
     def title(self):
         return self.__title
 
     @title.setter
-    def title(self,name):
+    def title(self, name):
         self.__title = name
         return
