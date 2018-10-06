@@ -157,5 +157,5 @@ class E_Novel_Reader():
         return fileName
 
 
-a = E_Novel_Reader.initBiquege("大道朝天")
-a.DownloadAll()
+#a = E_Novel_Reader.initBiquege("大道朝天")
+#a.DownloadAll_Multi()
