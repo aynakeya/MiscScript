@@ -140,13 +140,15 @@ class E_Novel_Reader():
                 pass
             for zhang in juan["list"]:
                 if not os.path.exists(os.path.join(path1, "%s.txt" % (self.setFileTitle(zhang["name"])))):
+                    # 将线程放入list中便于后续操作
                     t = threading.Thread(target=self.__Download, args=(zhang, chaptername, path1))
                     threads.append(t)
 
+        #启动所有线程
         for t in threads:
             t.start()
 
-            # 等待所有结束线程
+        # 等待所有结束线程
         for t in threads:
             t.join()
 
