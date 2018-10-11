@@ -110,26 +110,29 @@ class E_Novel_Reader():
             except:
                 pass
 
-    def __Download(self, zhang, chaptername, path):
+    def __Download(self, path, chaptername,index, zhang):
         print("开始下载:",zhang["name"])
         content = self.__getter.getArticleContent(self.bookid, zhang["id"])
-        with open(os.path.join(path, "%s.txt" % (self.setFileTitle(zhang["name"]))), "w", encoding="utf-8") as f:
+        with open(os.path.join(path, "%s_%s.txt" % (index,self.setFileTitle(zhang["name"]))), "w", encoding="utf-8") as f:
             f.write("%s %s %s\n" % (self.bookname, chaptername, zhang["name"]))
             f.write(content)
             f.close()
 
     # 单进程下载
     def DownloadAll(self):
+        n = 1
         self.__createDirs()
         bookname = "_".join([self.bookname, self.bookauthor])
         for juan in self.bookchapters:
             path = os.path.join(sys.path[0], bookname, juan["name"])
             for zhang in juan["list"]:
                 if not os.path.exists(os.path.join(path, "%s.txt" % (self.setFileTitle(zhang["name"])))):
-                    self.__Download(zhang,juan["name"],path)
+                    self.__Download(path,juan["name"],n,zhang)
+                n += 1
 
     # 多线程下载
     def DownloadAll_Multi(self):
+        n=1
         threads = []
         bookname = "_".join([self.bookname, self.bookauthor])
         self.__createDirs()
@@ -138,8 +141,9 @@ class E_Novel_Reader():
             for zhang in juan["list"]:
                 if not os.path.exists(os.path.join(path, "%s.txt" % (self.setFileTitle(zhang["name"])))):
                     # 将线程放入list中便于后续操作
-                    t = threading.Thread(target=self.__Download, args=(zhang, juan["name"], path))
+                    t = threading.Thread(target=self.__Download, args=(path,juan["name"],n,zhang))
                     threads.append(t)
+                n +=1
 
         #启动所有线程
         for t in threads:
@@ -154,8 +158,8 @@ class E_Novel_Reader():
         return fileName
 
 if __name__ == "__main__":
-    #a = E_Novel_Reader.initBiquege("诡秘之主")
-    #try:
-    #    a.DownloadAll_Multi()
-    #except:
-    #    print("遇到了问题，请尝试重新运行程序")
+    a = E_Novel_Reader.initBiquege("诡秘之主")
+    try:
+        a.DownloadAll_Multi()
+    except:
+        print("遇到了问题，请尝试重新运行程序")
