@@ -96,6 +96,19 @@ class E_Novel_Reader():
                 f.write(content)
         return (info[1], content)
 
+    def __createDirs(self):
+        bookname = "_".join([self.bookname, self.bookauthor])
+        try:
+            os.mkdir(os.path.join(sys.path[0],bookname))
+        except:
+            pass
+        for juan in self.bookchapters:
+            chaptername = juan["name"]
+            path = os.path.join(sys.path[0], bookname, chaptername)
+            try:
+                os.mkdir(path)
+            except:
+                pass
 
     def __Download(self, zhang, chaptername, path):
         print("开始下载:",zhang["name"])
@@ -107,41 +120,25 @@ class E_Novel_Reader():
 
     # 单进程下载
     def DownloadAll(self):
+        self.__createDirs()
         bookname = "_".join([self.bookname, self.bookauthor])
-        try:
-            os.mkdir(bookname)
-        except:
-            pass
         for juan in self.bookchapters:
-            chaptername = juan["name"]
-            path1 = os.path.join(sys.path[0], bookname, chaptername)
-            try:
-                os.mkdir(path1)
-            except:
-                pass
+            path = os.path.join(sys.path[0], bookname, juan["name"])
             for zhang in juan["list"]:
-                if not os.path.exists(os.path.join(path1, "%s.txt" % (self.setFileTitle(zhang["name"])))):
-                    self.__Download(zhang,chaptername,path1)
+                if not os.path.exists(os.path.join(path, "%s.txt" % (self.setFileTitle(zhang["name"])))):
+                    self.__Download(zhang,juan["name"],path)
 
     # 多线程下载
-    def DownloadAll_Mutli(self):
+    def DownloadAll_Multi(self):
         threads = []
         bookname = "_".join([self.bookname, self.bookauthor])
-        try:
-            os.mkdir(bookname)
-        except:
-            pass
+        self.__createDirs()
         for juan in self.bookchapters:
-            chaptername = juan["name"]
-            path1 = os.path.join(sys.path[0], bookname, chaptername)
-            try:
-                os.mkdir(path1)
-            except:
-                pass
+            path = os.path.join(sys.path[0], bookname, juan["name"])
             for zhang in juan["list"]:
-                if not os.path.exists(os.path.join(path1, "%s.txt" % (self.setFileTitle(zhang["name"])))):
+                if not os.path.exists(os.path.join(path, "%s.txt" % (self.setFileTitle(zhang["name"])))):
                     # 将线程放入list中便于后续操作
-                    t = threading.Thread(target=self.__Download, args=(zhang, chaptername, path1))
+                    t = threading.Thread(target=self.__Download, args=(zhang, juan["name"], path))
                     threads.append(t)
 
         #启动所有线程
@@ -156,6 +153,9 @@ class E_Novel_Reader():
         fileName = re.sub('[\/:*?"<>|]', '-', title)
         return fileName
 
-
-#a = E_Novel_Reader.initBiquege("大道朝天")
-#a.DownloadAll_Multi()
+if __name__ == "__main__":
+    #a = E_Novel_Reader.initBiquege("诡秘之主")
+    #try:
+    #    a.DownloadAll_Multi()
+    #except:
+    #    print("遇到了问题，请尝试重新运行程序")
