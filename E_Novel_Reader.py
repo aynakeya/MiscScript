@@ -1,5 +1,5 @@
 import requests
-import ast, os, sys, threading, re
+import ast, os, sys, threading, re, time
 
 
 # 笔趣阁api
@@ -28,17 +28,24 @@ class E_Novel_Getter_Biquege():
 
     # 获取某一章的内容
     def getArticleContent(self, bookid, articleid):
-        raw = requests.get(self.contentapi % (bookid, articleid))
-        data = ast.literal_eval(raw.content[3:].decode())
+        while True:
+            try:
+                raw = requests.get(self.contentapi % (bookid, articleid))
+                data = ast.literal_eval(raw.content[3:].decode())
+                break
+            except:
+                print("获取内容失败，等待一秒后重试")
+                time.sleep(1)
+                continue
         return data["data"]["content"]
 
 
 # 阅读
 class E_Novel_Reader():
 
-    #初始化
+    # 初始化
     def __init__(self, getter, bookname):
-        #使用的接口
+        # 使用的接口
         self.__getter = getter
         self.bookname = bookname
         self.bookid = None
@@ -46,8 +53,8 @@ class E_Novel_Reader():
         self.bookchapters = []
 
         # 获取书本id
-        self.__getBookInfo()
-        self.__getChapaters()
+        self.getBookInfo()
+        self.getChapaters()
 
     # 使用笔趣阁获取
     @classmethod
@@ -55,7 +62,7 @@ class E_Novel_Reader():
         return cls(E_Novel_Getter_Biquege(), bookname)
 
     # 调用笔趣阁api
-    def __getBookInfo(self):
+    def getBookInfo(self):
         info = self.__getter.getBookInfo(self.bookname)
         if info is None:
             return
@@ -63,7 +70,7 @@ class E_Novel_Reader():
         self.bookauthor = info[1]
 
     # 调用笔趣阁api
-    def __getChapaters(self):
+    def getChapaters(self):
         if self.bookid is None:
             return
         self.bookchapters = self.__getter.getBookChapters(self.bookid)
@@ -99,7 +106,7 @@ class E_Novel_Reader():
     def __createDirs(self):
         bookname = "_".join([self.bookname, self.bookauthor])
         try:
-            os.mkdir(os.path.join(sys.path[0],bookname))
+            os.mkdir(os.path.join(sys.path[0], bookname))
         except:
             pass
         for juan in self.bookchapters:
@@ -110,10 +117,11 @@ class E_Novel_Reader():
             except:
                 pass
 
-    def __Download(self, path, chaptername,index, zhang):
-        print("开始下载:",zhang["name"])
+    def __Download(self, path, chaptername, index, zhang):
+        print("开始下载:", zhang["name"])
         content = self.__getter.getArticleContent(self.bookid, zhang["id"])
-        with open(os.path.join(path, "%s_%s.txt" % (index,self.setFileTitle(zhang["name"]))), "w", encoding="utf-8") as f:
+        with open(os.path.join(path, "%s_%s.txt" % (index, self.setFileTitle(zhang["name"]))), "w",
+                  encoding="utf-8") as f:
             f.write("%s %s %s\n" % (self.bookname, chaptername, zhang["name"]))
             f.write(content)
             f.close()
@@ -126,26 +134,31 @@ class E_Novel_Reader():
         for juan in self.bookchapters:
             path = os.path.join(sys.path[0], bookname, juan["name"])
             for zhang in juan["list"]:
-                if not os.path.exists(os.path.join(path, "%s.txt" % (self.setFileTitle(zhang["name"])))):
-                    self.__Download(path,juan["name"],n,zhang)
+                if not os.path.exists(os.path.join(n, "%s_%s.txt" % (n, self.setFileTitle(zhang["name"])))):
+                    self.__Download(path, juan["name"], n, zhang)
+                else:
+                    print("Skip %s_%s" % (n,self.setFileTitle(zhang["name"])))
                 n += 1
 
-    # 多线程下载
+                # 多线程下载
+
     def DownloadAll_Multi(self):
-        n=1
+        n = 1
         threads = []
         bookname = "_".join([self.bookname, self.bookauthor])
         self.__createDirs()
         for juan in self.bookchapters:
             path = os.path.join(sys.path[0], bookname, juan["name"])
             for zhang in juan["list"]:
-                if not os.path.exists(os.path.join(path, "%s.txt" % (self.setFileTitle(zhang["name"])))):
+                if not os.path.exists(os.path.join(path, "%s_%s.txt" % (n, self.setFileTitle(zhang["name"])))):
                     # 将线程放入list中便于后续操作
-                    t = threading.Thread(target=self.__Download, args=(path,juan["name"],n,zhang))
+                    t = threading.Thread(target=self.__Download, args=(path, juan["name"], n, zhang))
                     threads.append(t)
-                n +=1
+                else:
+                    print("Skip %s_%s" % (n,self.setFileTitle(zhang["name"])))
+                n += 1
 
-        #启动所有线程
+        # 启动所有线程
         for t in threads:
             t.start()
 
@@ -156,10 +169,3 @@ class E_Novel_Reader():
     def setFileTitle(self, title):
         fileName = re.sub('[\/:*?"<>|]', '-', title)
         return fileName
-
-if __name__ == "__main__":
-    a = E_Novel_Reader.initBiquege("诡秘之主")
-    try:
-        a.DownloadAll_Multi()
-    except:
-        print("遇到了问题，请尝试重新运行程序")
