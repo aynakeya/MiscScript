@@ -1,0 +1,1 @@
+achieve of [https://github.com/Mas0nShi/typoraCracker](https://github.com/Mas0nShi/typoraCracker)
