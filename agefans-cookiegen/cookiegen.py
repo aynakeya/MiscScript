@@ -18,14 +18,15 @@ def getcookie(t1:int):
     print("t2=%s" % t2_s)
     return {"t2":t2_s,"k2":k2_s}
 
-url = "https://www.agefans.vip/_getplay?aid=20210249&playindex=2&epindex=1"
-data = requests.head(url,headers={"referer":"https://www.agefans.vip/",})
-print(data)
+url = "https://www.agemys.net/_getplay?aid=20220076&playindex=2&epindex=4&r=0.05532522306428689"
+data = requests.head(url,headers={"origin":"https://www.agemys.net/","referer":"https://www.agemys.net/",})
+print(data.headers)
 setcookies = data.headers.get("set-cookie")
 print(setcookies)
 t1 = int(re.compile(r"t1=[^;]*;").search(setcookies).group()[3:-1:])
+# k1 = int(re.compile(r"k1=[^;]*;").search(setcookies).group()[3:-1:])
 print(t1)
 cookies = getcookie(t1)
 cookies["t1"] = str(t1)
-data = requests.get(url,headers={"referer":"https://www.agefans.vip/",},cookies=cookies)
+data = requests.get(url,headers={"origin":"https://www.agemys.net/","referer":"https://www.agemys.net/",},cookies=cookies)
 print(data.text)
